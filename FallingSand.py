@@ -43,14 +43,14 @@ def drawGrid():
 
 def gravity():
     for col in range(cols):
-        for row in range(rows - 1):
+        for row in range(rows - 2, -1, -1):
             if grid[col][row] == 1 and grid[col][row + 1] == 0:
                 grid[col][row + 1] = 1
                 grid[col][row] = 0
-
 # Bucle principal del juego
 def main():
     clock = pygame.time.Clock()
+    gravity_timer = 0
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -62,13 +62,20 @@ def main():
                 fila =  mouse_pos[1] // CELL_SIZE
                 print((mouse_pos[1] // CELL_SIZE))
                 grid[columna][fila] = 1
+        
+        # timer de la gravedad
+        gravity_timer += clock.get_time()
+        if gravity_timer > 40:  # hacer que vaya cayendo con lentitud
+            gravity()
+            drawGrid()
+            pygame.display.update()
+            gravity_timer = 0
 
         # dibujar el grid
         drawGrid()
-        gravity()
         # Actualizar la pantalla
         pygame.display.update()
-        clock.tick(10)
+        clock.tick(60)
 
 if __name__ == "__main__":
     main()
