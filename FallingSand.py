@@ -22,7 +22,6 @@ def make2DArray(cols, rows):
     return arr
 
 grid = make2DArray(cols, rows) 
-
 # poner valor a cada celda
 for col in range(cols):
     for row in range(rows):
@@ -35,8 +34,7 @@ def drawGrid():
         for row in range(rows):
             x = col * CELL_SIZE
             y = row * CELL_SIZE
-            rect = pygame.Rect(x, y, CELL_SIZE, CELL_SIZE)
-            pygame.draw.rect(SCREEN, (255, 255, 255), rect, 1)
+
             if grid[col][row] == 1:
                 rect = pygame.Rect(x, y, CELL_SIZE, CELL_SIZE)
                 pygame.draw.rect(SCREEN, (255, 255, 255), rect)
@@ -51,21 +49,26 @@ def gravity():
 def main():
     clock = pygame.time.Clock()
     gravity_timer = 0
+    pressed = False
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
             elif event.type == pygame.MOUSEBUTTONDOWN:  # click del mouse
-                mouse_pos = pygame.mouse.get_pos()  # posicion del mouse
-                columna = mouse_pos[0] // CELL_SIZE
-                fila =  mouse_pos[1] // CELL_SIZE
-                print((mouse_pos[1] // CELL_SIZE))
-                grid[columna][fila] = 1
+                pressed = True
+            elif event.type == pygame.MOUSEBUTTONUP:
+                pressed = False
+        if pressed:
+            mouse_pos = pygame.mouse.get_pos()  # posicion del mouse
+            columna = mouse_pos[0] // CELL_SIZE
+            fila =  mouse_pos[1] // CELL_SIZE
+            print(f'{columna, fila}')
+            grid[columna][fila] = 1
         
         # timer de la gravedad
         gravity_timer += clock.get_time()
-        if gravity_timer > 40:  # hacer que vaya cayendo con lentitud
+        if gravity_timer > 15:  # hacer que vaya cayendo con lentitud
             gravity()
             drawGrid()
             pygame.display.update()
