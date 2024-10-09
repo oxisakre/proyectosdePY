@@ -24,7 +24,7 @@ class Planet:
     AU = 149.6e6 * 1000
     G = 6.67e-11
     SCALE = 200 / AU  # scale factor 100 PIXELS = 1 AU   
-    TIMESTEP = 36003 * 24 # 1 day in seconds
+    TIMESTEP = 3600 * 24 # 1 day in seconds
 
     def __init__(self, x, y, radius, color, mass, name):
         self.x = x
