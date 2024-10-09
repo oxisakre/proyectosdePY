@@ -24,7 +24,7 @@ class Planet:
     AU = 149.6e6 * 1000
     G = 6.67e-11
     SCALE = 200 / AU  # scale factor 100 PIXELS = 1 AU   
-    TIMESTEP = 3600 * 24 # 1 day in seconds
+    BASE_TIMESTEP = 3600 * 24 # 1 day per second
 
     def __init__(self, x, y, radius, color, mass, name):
         self.x = x
@@ -82,7 +82,7 @@ class Planet:
         force_y = force * math.sin(theta)
         return force_x, force_y
     
-    def update_positions(self, planets):
+    def update_positions(self, planets, timestep):
         if self.sun:
             return  # El sol no debe moverse
 
@@ -94,16 +94,13 @@ class Planet:
             total_force_x += fx
             total_force_y += fy
 
-        self.x_vel += total_force_x / self.mass * self.TIMESTEP
-        self.y_vel += total_force_y / self.mass * self.TIMESTEP
-        self.x += self.x_vel * self.TIMESTEP
-        self.y += self.y_vel * self.TIMESTEP
+        self.x_vel += total_force_x / self.mass * timestep
+        self.y_vel += total_force_y / self.mass * timestep
+        self.x += self.x_vel * timestep
+        self.y += self.y_vel * timestep
         self.orbit.append((self.x, self.y))
 
         # Actualizar el contador de vueltas
-        current_distance_to_sun = math.sqrt(self.x ** 2 + self.y ** 2)
-        
-        # Comprobar si el planeta ha cruzado el eje Y del sol (aproximadamente)
         if self.previous_y < 0 and self.y > 0:
             self.orbit_count += 0.5
         elif self.previous_y > 0 and self.y < 0:
@@ -111,10 +108,9 @@ class Planet:
 
         self.previous_y = self.y
 
-
 def draw_distance_table(win, planets, mouse_pos, selected_planet, click_processed):
     title_text = FONT.render("Planet Distances to the Sun:", 1, WHITE)
-    win.blit(title_text, (10, HEIGHT - 180))
+    win.blit(title_text, (10, HEIGHT - 190))
 
     for i, planet in enumerate(planets):
         if planet.sun:
@@ -125,7 +121,7 @@ def draw_distance_table(win, planets, mouse_pos, selected_planet, click_processe
             color = WHITE
 
         distance_text = FONT.render(f"{planet.name} : {format(round(planet.distance_to_sun / 1000), ',')} km | Orbits: {planet.orbit_count}", 1, color)
-        text_rect = distance_text.get_rect(topleft=(10, HEIGHT - 160 + i * 20))
+        text_rect = distance_text.get_rect(topleft=(10, HEIGHT - 180 + i * 20))
         
         # Dibuja el texto en la tabla
         win.blit(distance_text, text_rect.topleft)
@@ -169,7 +165,9 @@ def main():
     last_mouse_pos = None
     selected_planet = None
     click_processed = False
-
+    time_multiplier = 1  # Factor de velocidad inicial
+    sub_steps = 10  # Número de subpasos para mayor precisión
+    
     # Inicialización de planetas
     sun = Planet(0, 0, 30, YELLOW, 1.98892 * 10**30, "Sun")
     mercury = Planet(0.38 * Planet.AU, 0, 2, GREY, 3.302 * 10**23, "Mercury")
@@ -192,13 +190,20 @@ def main():
     planets = [sun, mercury, venus, earth, mars, jupiter, saturn, uranus, neptune]
 
     while run:
-        clock.tick(FPS)
+        clock.tick(FPS)  # Mantener FPS constante
         WIN.fill((0, 0, 0))  # Limpiar la pantalla
         mouse_pos = pygame.mouse.get_pos()
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 run = False
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_UP:
+                    time_multiplier *= 2  # Duplicar la velocidad
+                elif event.key == pygame.K_DOWN:
+                    time_multiplier /= 2  # Reducir la velocidad a la mitad
+                elif event.key == pygame.K_r:
+                    time_multiplier = 1  # Reiniciar el factor de velocidad a 1
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 mouse_x, mouse_y = pygame.mouse.get_pos()
                 if event.button == 1:
@@ -238,8 +243,11 @@ def main():
             zoom_to_planet(selected_planet, scale)
 
         # Dibujar los planetas y actualizarlos
+        for _ in range(sub_steps):
+            for planet in planets:
+                planet.update_positions(planets, Planet.BASE_TIMESTEP * time_multiplier / sub_steps)
+
         for planet in planets:
-            planet.update_positions(planets)
             planet.draw(WIN, scale, offset_x, offset_y)
 
         # Dibujar el sol si no está en pantalla
