@@ -8,9 +8,9 @@ pygame.display.set_caption("Gravity Simulation with Ball Collision and Friction"
 
 # Definición de colores
 WHITE = (255, 255, 255)
-
+FPS = 60
 # Constantes
-GRAVITY = 9.8 / 60  # Dividimos por 60 porque el juego corre a 60 FPS
+GRAVITY = 9.8 / FPS  # Dividimos por 60 porque el juego corre a 60 FPS
 BALL_RADIUS = 10
 FRICTION = 0.98  # Coeficiente de fricción para el suelo
 BALL_CREATION_DELAY = 500  # Tiempo mínimo entre bolas en milisegundos (0.5 segundos)
@@ -97,7 +97,7 @@ def main():
     last_ball_creation_time = 0  # Tiempo de creación de la última bola
 
     while run:
-        clock.tick(60)  # Control de FPS
+        clock.tick(FPS)  # Control de FPS
 
         # Manejar eventos
         for event in pygame.event.get():
